@@ -1,0 +1,12 @@
+### requirements.txt
+requests
+beautifulsoup4
+pandas
+nltk
+wordcloud
+numpy
+Pillow
+colorthief
+matplotlib
+nidecode
+Flask==2.3.2
