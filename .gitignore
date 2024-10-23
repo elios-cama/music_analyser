@@ -40,3 +40,7 @@ ENV/
 # Project-specific
 data/
 *.pdf
+*.pkl
+
+# Secure
+*.json
