@@ -11,7 +11,6 @@ setup(
         'beautifulsoup4',
         'pandas',
         'nltk',
-        'wordcloud',
         'numpy',
         'Pillow',
         'colorthief',

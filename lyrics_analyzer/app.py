@@ -17,14 +17,15 @@ def start_analysis():
     try:
         data = request.get_json()
         artist_name = data.get('artist_name')
-        genius_token = data.get('genius_token')
         
-        if not all([artist_name, genius_token]):
-            return {'error': 'Missing required parameters'}, 400
+        if not artist_name:
+            return {'error': 'Missing artist name'}, 400
         
-        # Initialize and run analysis
+        # Get token from environment
+        genius_token = os.getenv('GENIUS_ACCESS_TOKEN')
+        
         analyzer = LyricsAnalyzer(artist_name, genius_token)
-        analyzer.analyze()  # This now saves to Firebase instead of generating PDF
+        analyzer.analyze()
         
         return {
             'status': 'success',
@@ -32,7 +33,7 @@ def start_analysis():
         }, 200
         
     except Exception as e:
-        print(f"Error during analysis: {str(e)}")  # Log the actual error
+        print(f"Error during analysis: {str(e)}")
         return {
             'error': 'Analysis failed',
             'details': str(e)
@@ -111,5 +112,5 @@ def get_album_words(artist_name, album_name):
         print(f"Error fetching word stats: {str(e)}")
         return jsonify({"error": "Failed to fetch word stats"}), 500
 
-if __name__ == '__main__':
-    app.run(debug=True)
+if __name__ == "__main__":
+    app.run(host='0.0.0.0', port=8080, debug=True)

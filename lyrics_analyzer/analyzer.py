@@ -4,7 +4,6 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import nltk
 from nltk.corpus import stopwords
-from wordcloud import WordCloud, ImageColorGenerator
 import numpy as np
 from PIL import Image
 from collections import Counter
@@ -162,22 +161,22 @@ class LyricsAnalyzer:
         df['LyricsClean'] = df['Lyrics'].apply(self.text_cleansing).apply(self.clean_and_tokenize).apply(' '.join)
         return df
 
-    def _generate_visualizations(self):
-        figures = []
-        for album_name, group in self.df.groupby("Album Name"):
-            lyrics = " ".join(group["LyricsClean"])
-            album_cover_url = group["url"].iloc[0]
-            figure = self.create_wordcloud_and_frequency_graph(lyrics, album_name, album_cover_url)
-            figures.append((album_name, figure))
-            plt.close(figure)  # Close the figure to free up memory
+    # def _generate_visualizations(self):
+    #     figures = []
+    #     for album_name, group in self.df.groupby("Album Name"):
+    #         lyrics = " ".join(group["LyricsClean"])
+    #         album_cover_url = group["url"].iloc[0]
+    #         figure = self.create_wordcloud_and_frequency_graph(lyrics, album_name, album_cover_url)
+    #         figures.append((album_name, figure))
+    #         plt.close(figure)  # Close the figure to free up memory
 
-        pdf_filename = f'wordcloud_plots_{self.artist_name}.pdf'
-        with pdf_backend.PdfPages(pdf_filename) as pdf:
-            for album_name, fig in figures:
-                pdf.savefig(fig)
-                plt.close(fig)  # Close the figure after saving
+    #     pdf_filename = f'wordcloud_plots_{self.artist_name}.pdf'
+    #     with pdf_backend.PdfPages(pdf_filename) as pdf:
+    #         for album_name, fig in figures:
+    #             pdf.savefig(fig)
+    #             plt.close(fig)  # Close the figure after saving
 
-        print(f"Analysis complete. PDF generated: {pdf_filename}")
+    #     print(f"Analysis complete. PDF generated: {pdf_filename}")
 
     def get_artist_id(self):
         print(f"Searching for artist: {self.artist_name}")
@@ -192,8 +191,18 @@ class LyricsAnalyzer:
                 print(f"Unexpected API response structure. Keys found: {data.keys()}")
                 return None
             
+            # Print all artists found for debugging
+            print("\nArtists found in search:")
             for hit in data["response"]["hits"]:
-                if hit["result"]["primary_artist"]["name"].lower() == self.artist_name.lower():
+                artist_name = hit["result"]["primary_artist"]["name"]
+                artist_id = hit["result"]["primary_artist"]["id"]
+                print(f"Name: {artist_name}, ID: {artist_id}")
+            
+            # More flexible matching
+            for hit in data["response"]["hits"]:
+                genius_name = hit["result"]["primary_artist"]["name"].lower().replace(' ', '')
+                search_name = self.artist_name.lower().replace(' ', '')
+                if genius_name == search_name:
                     return hit["result"]["primary_artist"]["id"]
             
             print(f"Artist '{self.artist_name}' not found in search results.")
@@ -345,41 +354,41 @@ class LyricsAnalyzer:
     def rgb2hex(r, g, b):
         return "#{:02x}{:02x}{:02x}".format(r, g, b)
 
-    def create_wordcloud_and_frequency_graph(self, text, album_name, album_cover_url):
-        plt.figure(figsize=(12, 5))
+    # def create_wordcloud_and_frequency_graph(self, text, album_name, album_cover_url):
+    #     plt.figure(figsize=(12, 5))
         
-        # Create word cloud
-        album_cover = Image.open(requests.get(album_cover_url, stream=True).raw).convert('RGB')
-        color_thief = ColorThief(io.BytesIO(requests.get(album_cover_url, stream=True).content))
-        dominant_color = color_thief.get_color(quality=1)
-        dominant_color = self.rgb2hex(*dominant_color)
-        mask = np.array(album_cover)
-        image_colors = ImageColorGenerator(mask)
-        wordcloud = WordCloud(width=400, height=400, background_color="white", mask=mask, collocations=False).generate(text)
+    #     # Create word cloud
+    #     album_cover = Image.open(requests.get(album_cover_url, stream=True).raw).convert('RGB')
+    #     color_thief = ColorThief(io.BytesIO(requests.get(album_cover_url, stream=True).content))
+    #     dominant_color = color_thief.get_color(quality=1)
+    #     dominant_color = self.rgb2hex(*dominant_color)
+    #     mask = np.array(album_cover)
+    #     image_colors = ImageColorGenerator(mask)
+    #     wordcloud = WordCloud(width=400, height=400, background_color="white", mask=mask, collocations=False).generate(text)
         
-        # Calculate word frequencies
-        word_counts = Counter(text.split())
-        most_common_words = word_counts.most_common(15)
-        words, counts = zip(*most_common_words)
+    #     # Calculate word frequencies
+    #     word_counts = Counter(text.split())
+    #     most_common_words = word_counts.most_common(15)
+    #     words, counts = zip(*most_common_words)
         
-        plt.subplot(1, 3, 1)
-        plt.imshow(mask, cmap=plt.cm.gray, interpolation="bilinear")
-        plt.axis("off")
-        plt.title(f"Album Cover for {album_name}")
+    #     plt.subplot(1, 3, 1)
+    #     plt.imshow(mask, cmap=plt.cm.gray, interpolation="bilinear")
+    #     plt.axis("off")
+    #     plt.title(f"Album Cover for {album_name}")
         
-        plt.subplot(1, 3, 2)
-        plt.imshow(wordcloud.recolor(color_func=image_colors), interpolation='bilinear')
-        plt.axis("off")
-        plt.title(f"Word Cloud for {album_name}")
+    #     plt.subplot(1, 3, 2)
+    #     plt.imshow(wordcloud.recolor(color_func=image_colors), interpolation='bilinear')
+    #     plt.axis("off")
+    #     plt.title(f"Word Cloud for {album_name}")
         
-        plt.subplot(1, 3, 3)
-        plt.barh(words, counts, color=dominant_color)
-        plt.xlabel("Frequency")
-        plt.title(f"Top 15 Most Frequent Words for {album_name}")
+    #     plt.subplot(1, 3, 3)
+    #     plt.barh(words, counts, color=dominant_color)
+    #     plt.xlabel("Frequency")
+    #     plt.title(f"Top 15 Most Frequent Words for {album_name}")
         
-        plt.tight_layout()
+    #     plt.tight_layout()
         
-        return plt.gcf()
+    #     return plt.gcf()
 
     def save_checkpoint(self, data):
         with open(self.checkpoint_file, 'wb') as f:

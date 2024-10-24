@@ -36,6 +36,8 @@ wheels/
 env/
 venv/
 ENV/
+.env.*
+!.env.example
 
 # Project-specific
 data/
@@ -44,3 +46,33 @@ data/
 
 # Secure
 *.json
+service_account_key.json
+firebase_credentials.json
+*_key.json
+
+# Docker
+.docker/
+docker-compose.override.yml
+*.dockerfile
+.dockerignore
+
+# Logs
+logs/
+*.log
+
+# Cache
+.cache/
+.pytest_cache/
+
+# System
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.swp
+*.swo
+*~
+
+# Checkpoints
+checkpoints/
+*.checkpoint
